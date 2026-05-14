@@ -5,54 +5,6 @@ import { wheatCountries } from "./data/countries";
 
 const sorted = Object.entries(wheatCountries).sort((a, b) => a[1].rank - b[1].rank);
 
-const wheatItems = Array.from({ length: 25 }, (_, i) => ({
-  id: i,
-  left: `${Math.random() * 100}%`,
-  duration: `${8 + Math.random() * 10}s`,
-  delay: `${Math.random() * 12}s`,
-  size: `${1.5 + Math.random() * 2}rem`,
-  opacity: 0.12 + Math.random() * 0.18,
-}));
-
-function WheatBackground() {
-  return (
-    <div style={{ position: "absolute", inset: 0, pointerEvents: "none", overflow: "hidden", zIndex: 1 }}>
-      <style>{`
-        @keyframes wheatFall {
-          0%   { transform: translateY(-80px) rotate(0deg); opacity: 0; }
-          5%   { opacity: 1; }
-          90%  { opacity: 1; }
-          100% { transform: translateY(105vh) rotate(360deg); opacity: 0; }
-        }
-        @keyframes wheatDrift {
-          0%   { margin-left: 0px; }
-          25%  { margin-left: 30px; }
-          75%  { margin-left: -30px; }
-          100% { margin-left: 0px; }
-        }
-      `}</style>
-      {wheatItems.map(item => (
-        <div
-          key={item.id}
-          style={{
-            position: "absolute",
-            left: item.left,
-            top: "-80px",
-            fontSize: item.size,
-            opacity: item.opacity,
-            animation: `wheatFall ${item.duration} ${item.delay} infinite linear,
-                        wheatDrift ${item.duration} ${item.delay} infinite ease-in-out`,
-            userSelect: "none",
-            filter: "sepia(0.4) hue-rotate(5deg) brightness(1.2)",
-          }}
-        >
-          🌾
-        </div>
-      ))}
-    </div>
-  );
-}
-
 export default function App() {
   const [selected, setSelected] = useState(null);
   const [markerPositions, setMarkerPositions] = useState({});
@@ -74,9 +26,6 @@ export default function App() {
         position: "absolute", inset: 0, pointerEvents: "none", zIndex: 0,
         background: "radial-gradient(ellipse at 50% 40%, #0a1628 0%, #060d18 100%)",
       }} />
-
-      {/* Falling wheat */}
-      <WheatBackground />
 
       {/* Header */}
       <div style={{
@@ -226,7 +175,10 @@ export default function App() {
           pointerEvents: "none", textAlign: "center", zIndex: 3,
           color: "rgba(245,237,216,0.06)",
         }}>
-        
+          <div className="bebas" style={{ fontSize: "4rem", letterSpacing: "0.15em" }}>Explore o mapa</div>
+          <div style={{ fontSize: "0.8rem", letterSpacing: "0.2em", marginTop: "0.3rem" }}>
+            Clique num país destacado
+          </div>
         </div>
       )}
     </div>

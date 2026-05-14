@@ -273,7 +273,7 @@ export default function WorldMap({ onCountrySelect, selectedCountry, onMarkerPos
         </div>
       )}
       <div className="absolute bottom-4 left-4 text-xs select-none" style={{ color: "rgba(245,237,216,0.2)" }}>
-        Scroll para zoom · Arraste para mover
+      
       </div>
     </div>
   );
