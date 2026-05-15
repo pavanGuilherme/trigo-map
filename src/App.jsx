@@ -2,6 +2,7 @@ import { useState, useCallback, useEffect } from "react";
 import WorldMap from "./components/WorldMap";
 import SidePanel from "./components/SidePanel";
 import { countries, grains } from "./data/countries";
+import QRPanel from "./components/QRPanel";
 
 const isMobile = () => window.innerWidth < 768;
 
@@ -220,7 +221,7 @@ export default function App() {
           ))}
         </div>
       </div>
-
+  
       {/* Center hint */}
       {!selected && (
         <div style={{

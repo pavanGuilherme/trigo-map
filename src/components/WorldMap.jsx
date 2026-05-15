@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 import * as d3 from "d3";
 import { feature } from "topojson-client";
 import { countryISOtoKey, countryCoords } from "../data/countries";
@@ -10,10 +10,13 @@ export default function WorldMap({ onCountrySelect, selectedCountry, onMarkerPos
   const currentTransformRef = useRef(d3.zoomIdentity);
   const [tooltip, setTooltip] = useState({ visible: false, x: 0, y: 0, name: "", flag: "", production: 0 });
 
-  useEffect(() => {
+  const buildMap = useCallback(() => {
+    if (!svgRef.current) return;
+
     const svg = d3.select(svgRef.current);
-    const width = svgRef.current.clientWidth;
-    const height = svgRef.current.clientHeight;
+    const width = svgRef.current.clientWidth || window.innerWidth;
+    const height = svgRef.current.clientHeight || window.innerHeight;
+
     svg.selectAll("*").remove();
 
     const defs = svg.append("defs");
@@ -28,8 +31,11 @@ export default function WorldMap({ onCountrySelect, selectedCountry, onMarkerPos
     merge.append("feMergeNode").attr("in", "blur");
     merge.append("feMergeNode").attr("in", "SourceGraphic");
 
+    const isMobile = window.innerWidth < 768;
+    const scale = isMobile ? width / 5.5 : width / 8.0;
+
     const projection = d3.geoNaturalEarth1()
-      .scale(width / 8.0)
+      .scale(scale)
       .translate([width / 2, height / 2]);
     projRef.current = projection;
 
@@ -161,7 +167,7 @@ export default function WorldMap({ onCountrySelect, selectedCountry, onMarkerPos
 
           g.append("circle")
             .attr("cx", cx).attr("cy", cy)
-            .attr("r", 4)
+            .attr("r", isMobile ? 6 : 4)
             .attr("fill", color)
             .attr("filter", "url(#glow)")
             .attr("stroke", "#fff")
@@ -199,33 +205,48 @@ export default function WorldMap({ onCountrySelect, selectedCountry, onMarkerPos
         });
         if (onMarkerPosition) onMarkerPosition(positions);
       });
-
-    return () => svg.selectAll("*").remove();
   }, [currentCountries, currentGrain]);
 
+  useEffect(() => {
+    // Small delay to ensure the DOM has rendered with correct dimensions
+    const timer = setTimeout(() => buildMap(), 50);
+    return () => {
+      clearTimeout(timer);
+      if (svgRef.current) d3.select(svgRef.current).selectAll("*").remove();
+    };
+  }, [buildMap]);
+
+  useEffect(() => {
+    const handleResize = () => buildMap();
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, [buildMap]);
+
   return (
-    <div className="relative w-full h-full">
-      <svg ref={svgRef} className="w-full h-full" />
+    <div style={{ position: "absolute", inset: 0, width: "100%", height: "100%" }}>
+      <svg ref={svgRef} style={{ width: "100%", height: "100%", display: "block" }} />
       {tooltip.visible && (
         <div
-          className="pointer-events-none absolute z-20 px-3 py-2 text-sm font-medium"
           style={{
+            position: "absolute", pointerEvents: "none", zIndex: 20,
             left: tooltip.x + 14, top: tooltip.y - 44,
             background: "rgba(6,13,24,0.95)",
             border: `1px solid ${currentGrain.color}55`,
             borderRadius: "6px", color: "#F5EDD8",
+            padding: "0.4rem 0.75rem",
+            fontSize: "0.85rem", fontWeight: 500,
             backdropFilter: "blur(8px)",
             boxShadow: "0 4px 24px rgba(0,0,0,0.5)",
           }}
         >
-          <span className="mr-1">{tooltip.flag}</span>
+          <span style={{ marginRight: "0.25rem" }}>{tooltip.flag}</span>
           {tooltip.name}
-          <span className="ml-2 text-xs" style={{ color: "rgba(245,237,216,0.45)" }}>
+          <span style={{ marginLeft: "0.5rem", fontSize: "0.75rem", color: "rgba(245,237,216,0.45)" }}>
             {tooltip.production} Mi t
           </span>
         </div>
       )}
-      <div className="absolute bottom-4 left-4 text-xs select-none" style={{ color: "rgba(245,237,216,0.2)" }}>
+      <div style={{ position: "absolute", bottom: "1rem", left: "1rem", fontSize: "0.72rem", color: "rgba(245,237,216,0.2)", userSelect: "none" }}>
         Scroll para zoom · Arraste para mover
       </div>
     </div>
